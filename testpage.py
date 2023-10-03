@@ -1,148 +1,122 @@
+import time, yaml
 from BaseApp import BasePage
 from selenium.webdriver.common.by import By
 import logging
-import yaml
+
+ids = dict()
+with open("./locators.yaml") as f:
+    locators = yaml.safe_load(f)
+for locator in locators["xpath"].keys():
+    ids[locator] = (By.XPATH, locators["xpath"][locator])
+for locator in locators["css"].keys():
+    ids[locator] = (By.CSS_SELECTOR, locators["css"][locator])
 
 
-
-class TestSearchLocators():
-    dictloc = {}
-    with open("locators.yaml") as f:
-        locators = yaml.safe_load(f)
-    for locator in locators["xpath"].keys():
-        dictloc[locator] = (By.XPATH, locators["xpath"][locator])
-    for locator in locators["css"].keys():
-        dictloc[locator] = (By.CSS_SELECTOR, locators["css"][locator])
-
-
-    # LOCATOR_LOGIN_FIELD = (By.XPATH, """//*[@id="login"]/div[1]/label/input""")
-    # LOCATOR_PASS_FIELD = (By.XPATH, """//*[@id="login"]/div[2]/label/input""")
-    # LOCATOR_LOGIN_BTN = (By.CSS_SELECTOR, """button""")
-    # LOCATOR_ERROR_FIELD = (By.XPATH, """//*[@id="app"]/main/div/div/div[2]/h2""")
-    # LOCATOR_NEW_POST_BTN = (By.XPATH, """//*[@id="create-btn"]""")
-    # LOCATOR_TITLE_FIELD = (By.XPATH, """//*[@id="create-item"]/div/div/div[1]/div/label/input""")
-    # LOCATOR_DESCRIPTION_FIELD = (By.XPATH, """//*[@id="create-item"]/div/div/div[2]/div/label/span/textarea""")
-    # LOCATOR_CONTENT_FIELD = (By.XPATH, """//*[@id="create-item"]/div/div/div[3]/div/label/span/textarea""")
-    # LOCATOR_SAVE_BTN = (By.XPATH, """//*[@id="create-item"]/div/div/div[7]/div/button/span""")
-    # LOCATOR_TITLE_TEXT = (By.XPATH, """//*[@id="app"]/main/div/div[1]/h1""")
-    # LOCATOR_CONTACT_BTN = (By.XPATH, """//*[@id="app"]/main/nav/ul/li[2]/a""")
-    # LOCATOR_CONTACT_NAME_FIELD = (By.XPATH, """//*[@id="contact"]/div[1]/label/input""")
-    # LOCATOR_CONTACT_EMAIL_FIELD = (By.XPATH, """//*[@id="contact"]/div[2]/label/input""")
-    # LOCATOR_CONTACT_CONTENT_FIELD = (By.XPATH, """//*[@id="contact"]/div[3]/label/span/textarea""")
-    # LOCATOR_CONTACT_SAVE_BTN = (By.XPATH, """//*[@id="contact"]/div[4]/button/span""")
-
-
-class OperationHelper(BasePage):
+class OperationsHelper(BasePage):
     def enter_text_into_field(self, locator, word, description=None):
         if description:
             element_name = description
         else:
             element_name = locator
-        logging.debug(f'Send {word} to element {element_name}')
+        logging.debug(f"Send '{word}' to element {element_name}")
         field = self.find_element(locator)
         if not field:
-            logging.error(f'Element {locator} not found')
+            logging.error(f"Element {locator} not found")
             return False
         try:
             field.clear()
             field.send_keys(word)
         except:
-            logging.exception(f'Exception while operation with {locator}')
+            logging.exception(f"Exception while operate with {locator}")
             return False
         return True
+
+    def get_text_from_element(self, locator, description=None):
+        if description:
+            element_name = description
+        else:
+            element_name = locator
+        field = self.find_element(locator, time=2)
+        if not field:
+            return None
+        try:
+            text = field.text
+        except:
+            logging.exception(f"Exception while get text from {element_name}")
+            return None
+        logging.debug(f"We find text {text} in field {element_name}")
+        return text
 
     def click_button(self, locator, description=None):
         if description:
             element_name = description
         else:
             element_name = locator
-
         button = self.find_element(locator)
         if not button:
             return False
         try:
             button.click()
         except:
-            logging.exception(f'Exception with click')
+            logging.exception("Exception with click")
             return False
-        logging.debug(f'Clicked {element_name} button')
+        logging.debug(f"Clicked {element_name} button")
         return True
 
-    def get_text_from_element(self, locator, description=None):
-
-        if description:
-            element_name = description
-        else:
-            element_name = locator
-        field = self.find_element(locator, time=10)
-        if not field:
-            return None
-        try:
-            text = field.text
-        except:
-            logging.exception(f'Exception while get test from {element_name}')
-            return None
-        logging.debug(f'We find text {text} in field {element_name}')
-        text = field.text
-
-        return text
-
-    # ENTER
+    # ENTER TEXT
     def enter_login(self, word):
-        self.enter_text_into_field(TestSearchLocators.dictloc["LOCATOR_LOGIN_FIELD"], word, description="Login form")
+        self.enter_text_into_field(ids["LOCATOR_LOGIN_FIELD"], word, description="login form")
 
     def enter_pass(self, word):
-        self.enter_text_into_field(TestSearchLocators.dictloc["LOCATOR_PASS_FIELD"], word, description="Password form")
+        self.enter_text_into_field(ids["LOCATOR_PASS_FIELD"], word, description="password form")
 
-    def enter_title(self, word):
-        self.enter_text_into_field(TestSearchLocators.dictloc["LOCATOR_TITLE_FIELD"], word, description="title form")
+    def add_title(self, string):
+        self.enter_text_into_field(ids["LOCATOR_TITLE"], string, description="title")
 
-    def enter_description(self, word):
-        self.enter_text_into_field(TestSearchLocators.dictloc["LOCATOR_DESCRIPTION_FIELD"], word, description="description form")
+    def add_description(self, string):
+        self.enter_text_into_field(ids["LOCATOR_DESCRIPTION"], string, description="description")
 
-    def enter_content(self, word):
-        self.enter_text_into_field(TestSearchLocators.dictloc["LOCATOR_CONTENT_FIELD"], word, description="post content form")
+    def add_content(self, string):
+        self.enter_text_into_field(ids["LOCATOR_CONTENT"], string, description="description")
 
-    def enter_name(self, word):
-        self.enter_text_into_field(TestSearchLocators.dictloc["LOCATOR_CONTACT_NAME_FIELD"], word, description="name form")
+    def add_name(self, string):
+        self.enter_text_into_field(ids["LOCATOR_CONTACT_NAME"], string, description="contact_name")
 
-    def enter_email(self, word):
-        self.enter_text_into_field(TestSearchLocators.dictloc["LOCATOR_CONTACT_EMAIL_FIELD"], word, description="email form")
+    def add_email(self, string):
+        self.enter_text_into_field(ids["LOCATOR_CONTACT_EMAIL"], string, description="contact_email")
 
-    def enter_contact_content(self, word):
-        self.enter_text_into_field(TestSearchLocators.dictloc["LOCATOR_CONTACT_CONTENT_FIELD"], word,
-                                   description="contact content form")
+    def add_contact_content(self, string):
+        self.enter_text_into_field(ids["LOCATOR_CONTACT_CONTENT"], string, description="contact_content")
 
-    # CLICK
-
-    def click_login_button(self):
-        self.click_button(TestSearchLocators.dictloc["LOCATOR_LOGIN_BTN"], description="login")
-
-    def click_to_do_new_post(self):
-        self.click_button(TestSearchLocators.dictloc["LOCATOR_NEW_POST_BTN"], description="new post")
-
-    def click_save_post_button(self):
-        self.click_button(TestSearchLocators.dictloc["LOCATOR_SAVE_BTN"], description="save post")
-
-    def click_contact_button(self):
-        self.click_button(TestSearchLocators.dictloc["LOCATOR_CONTACT_BTN"], description="contact")
-
-    def contact_us_save_button(self):
-        self.click_button(TestSearchLocators.dictloc["LOCATOR_CONTACT_SAVE_BTN"], description="contact save")
-
-    # GET TEXT
-
-    def get_title_text(self):
-        return self.get_text_from_element(TestSearchLocators.dictloc["LOCATOR_TITLE_TEXT"], description="title")
+# GET TEXT
+    def new_post_title(self):
+        return self.get_text_from_element(ids["LOCATOR_FIND_NEW_POST"], description="new_post_title")
 
     def get_error_text(self):
-        return self.get_text_from_element(TestSearchLocators.dictloc["LOCATOR_ERROR_FIELD"], description="error label")
+        return self.get_text_from_element(ids["LOCATOR_ERROR_FIELD"], description="error label")
 
-    def get_profile_text(self):
-        return self.get_text_from_element(TestSearchLocators.dictloc["LOCATOR_USER_PROFILE_NAME"], description="user profile name")
+    def login_success(self):
+        return self.get_text_from_element(ids["LOCATOR_HELLO"], description="username")
 
-    def get_alert_text(self):
-        logging.info("Get alert text")
-        text = self.alert()
-        logging.info(text)
-        return text
+    def get_alert_message(self):
+        time.sleep(2)
+        logging.info("Get alert message")
+        txt = self.get_alert_text()
+        logging.debug(f"Alert message is {txt}")
+        return txt
+
+# CLICK
+    def click_save_button(self):
+        self.click_button(ids["LOCATOR_SAVE_BTN"], description="save")
+
+    def click_add_post_button(self):
+        self.click_button(ids["LOCATOR_NEW_POST_BTN"], description="new post")
+
+    def click_contact(self):
+        self.click_button(ids["LOCATOR_CONTACT_SEND"], description="contact")
+
+    def click_contact_button(self):
+        self.click_button(ids["LOCATOR_CONTACT_BTN"], description="send")
+
+    def click_login_button(self):
+        self.click_button(ids["LOCATOR_LOGIN_BTN"], description="login")
